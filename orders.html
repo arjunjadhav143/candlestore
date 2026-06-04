@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Orders - The Candle Store</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@400;500;600&display=swap');
+    body { font-family: 'Poppins', sans-serif; }
+    .font-serif { font-family: 'Playfair Display', serif; }
+  </style>
+</head>
+<body class="bg-stone-50 text-stone-800 font-sans min-h-screen flex flex-col">
+
+  <header class="bg-white/80 backdrop-blur-md border-b border-stone-200 p-4 shadow-sm">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <div class="flex items-center gap-6">
+        <a href="index.html" class="flex items-center gap-2"><img src="candle images/1.png" alt="Logo" class="h-10"></a>
+        <nav class="hidden md:flex gap-6 text-sm font-medium">
+          <a href="index.html" class="hover:text-rose-700 transition">HOME</a>
+          <a href="orders.html" class="text-rose-900 font-bold border-b-2 border-rose-900 pb-1">ORDERS</a>
+        </nav>
+      </div>
+      <div id="userControls" class="flex gap-4 items-center"></div>
+    </div>
+  </header>
+
+  <main class="flex-grow max-w-7xl mx-auto w-full p-6 mt-6 animate__animated animate__fadeIn">
+    <h1 class="text-4xl font-bold font-serif mb-8 border-b border-stone-200 pb-4 text-stone-900">Purchase History</h1>
+    
+    <div id="orderConfirmation" class="hidden mb-6 bg-green-50 text-green-800 p-4 rounded-xl border border-green-200 flex items-center gap-3">
+      <span class="text-xl">🎉</span> Your order has been placed successfully!
+    </div>
+
+    <div id="ordersContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    
+    <div id="emptyOrders" class="hidden text-center py-20 bg-white rounded-3xl shadow-sm border border-stone-100 mt-6">
+      <div class="text-5xl mb-4">🛍️</div>
+      <h2 class="text-xl font-bold text-stone-800 mb-2 font-serif">No orders yet</h2>
+      <p class="text-stone-500 mb-6">Looks like you haven't made a purchase yet.</p>
+      <a href="candles.html" class="bg-stone-900 text-white px-8 py-3 rounded-full font-medium hover:bg-stone-700 transition shadow">Start Shopping</a>
+    </div>
+  </main>
+
+  <div id="toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 text-white px-6 py-3 rounded-full shadow-2xl hidden z-50 transition"></div>
+
+  <script>
+    const userEmail = localStorage.getItem("userEmail");
+    const userId = localStorage.getItem("userId");
+    const token = localStorage.getItem("token");
+    const controls = document.getElementById("userControls");
+
+    if (!userId || !token) { window.location.href = "signin.html"; }
+
+    controls.innerHTML = `
+      <span class="text-sm font-medium bg-stone-100 px-3 py-1 rounded-full hidden sm:block">${userEmail}</span>
+      <button onclick="logout()" class="bg-rose-100 text-rose-700 px-4 py-2 rounded-lg text-sm font-bold hover:bg-rose-200 transition">Logout</button>
+    `;
+    function logout() { localStorage.clear(); location.reload(); }
+
+    if (localStorage.getItem("orderConfirmed") === "true") {
+      document.getElementById("orderConfirmation").classList.remove("hidden");
+      localStorage.removeItem("orderConfirmed");
+    }
+
+    const container = document.getElementById("ordersContainer");
+    const emptyMsg = document.getElementById("emptyOrders");
+
+    fetch(`https://candle-store-backend-qk3r.onrender.com/api/orders/${userId}`)
+      .then(res => res.json())
+      .then(orders => {
+        if (!Array.isArray(orders) || orders.length === 0) { emptyMsg.classList.remove("hidden"); return; }
+        
+        let total = 0;
+        orders.forEach((order, index) => {
+          order.items.forEach(item => {
+            const itemTotal = Number(item.price) * Number(item.quantity);
+            total += itemTotal;
+            const card = document.createElement('div');
+            card.className = "bg-white border border-stone-100 rounded-2xl p-5 flex gap-4 shadow-sm hover:shadow-md transition animate__animated animate__fadeInUp";
+            card.style.animationDelay = `${index * 0.1}s`;
+            card.innerHTML = `
+              <img src="${item.img}" class="w-24 h-24 object-cover rounded-xl bg-stone-50">
+              <div class="flex-grow flex flex-col justify-between">
+                <div>
+                  <h2 class="font-bold text-lg text-stone-800 font-serif leading-tight">${item.name}</h2>
+                  <p class="text-sm text-stone-500 mt-1">Qty: ${item.quantity}</p>
+                </div>
+                <div class="flex justify-between items-end mt-2">
+                  <span class="font-bold text-rose-900 text-lg">₹${itemTotal}</span>
+                  <button onclick="cancelOrder('${order._id}')" class="text-xs text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1 rounded transition font-medium">Cancel Order</button>
+                </div>
+              </div>
+            `;
+            container.appendChild(card);
+          });
+        });
+
+        const totalEl = document.createElement('div');
+        totalEl.className = "text-right text-2xl font-bold font-serif text-stone-900 col-span-full mt-6 bg-white p-6 rounded-2xl border border-stone-100 shadow-sm";
+        totalEl.innerText = `Grand Total: ₹ ${total}`;
+        container.appendChild(totalEl);
+      })
+      .catch(err => { emptyMsg.classList.remove("hidden"); });
+
+    function cancelOrder(id) {
+      if(confirm("Are you sure you want to cancel this order?")) {
+        fetch(`https://candle-store-backend-qk3r.onrender.com/api/orders/${id}`, { method: "DELETE" })
+          .then(res => res.json())
+          .then(() => window.location.reload());
+      }
+    }
+  </script>
+</body>
+</html>

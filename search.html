@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Search - The Candle Store</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap');
+    body { font-family: 'Poppins', sans-serif; }
+    .font-serif { font-family: 'Playfair Display', serif; }
+  </style>
+</head>
+<body class="bg-stone-50 text-stone-800 font-sans flex flex-col min-h-screen">
+
+  <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-stone-200 shadow-sm transition-all">
+    <div class="max-w-7xl mx-auto flex justify-between items-center p-4">
+      <div class="flex items-center gap-6">
+        <a href="index.html" class="flex items-center gap-2"><img src="candle images/1.png" alt="Logo" class="h-10"></a>
+        <nav class="hidden md:flex gap-6 text-sm font-medium">
+          <a href="index.html" class="hover:text-rose-700 transition">HOME</a>
+          <a href="candles.html" class="hover:text-rose-700 transition">CANDLES</a>
+        </nav>
+      </div>
+      <div class="flex items-center gap-5" id="userControls"></div>
+    </div>
+  </header>
+
+  <main class="flex-grow p-6 max-w-7xl mx-auto w-full mt-6 animate__animated animate__fadeIn">
+    <div class="max-w-2xl mx-auto mb-10 text-center">
+      <h1 class="text-3xl font-bold font-serif mb-6 text-stone-900">Find Your Scent</h1>
+      <form id="searchForm" class="relative">
+        <input type="text" id="searchInput" placeholder="Search for candles..." class="w-full border-2 border-stone-200 rounded-full py-4 px-6 pr-12 focus:outline-none focus:border-rose-400 bg-white shadow-sm text-lg transition">
+        <button type="submit" class="absolute right-4 top-4 text-2xl text-stone-400 hover:text-rose-700 transition">🔍</button>
+      </form>
+    </div>
+
+    <div id="searchResults" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"></div>
+    
+    <div id="noResults" class="hidden text-center py-16 bg-white rounded-3xl border border-stone-100 shadow-sm">
+      <span class="text-4xl">🔎</span>
+      <p class="text-stone-500 text-lg mt-4">No products found matching your search.</p>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('q')) {
+        document.getElementById('searchInput').value = urlParams.get('q');
+        document.getElementById('searchForm').dispatchEvent(new Event('submit'));
+      }
+    });
+
+    const products = [
+      { id: "candle1", name: "Black Cup Candle", price: "1000", img: "candle images/candle 1.jpg", category: "Candles", desc: "Elegant black cup candle" },
+      { id: "candle2", name: "Jar Candle", price: "1200", img: "candle images/candle 2.jpg", category: "Candles", desc: "Classic jar candle" },
+      { id: "candle3", name: "Square Candle", price: "1200", img: "candle images/candle 3.jpg", category: "Candles", desc: "Modern square candle" },
+      { id: "candle4", name: "Cup Candle", price: "1496", img: "candle images/candle 4.jpg", category: "Candles", desc: "Beautiful cup candle" }
+    ];
+
+    document.getElementById('searchForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const term = document.getElementById('searchInput').value.toLowerCase().trim();
+      window.history.pushState({}, '', `search.html?q=${encodeURIComponent(term)}`);
+      
+      const resContainer = document.getElementById('searchResults');
+      const noRes = document.getElementById('noResults');
+      resContainer.innerHTML = '';
+      
+      if (!term) { noRes.classList.remove('hidden'); return; }
+      
+      const filtered = products.filter(p => p.name.toLowerCase().includes(term) || p.desc.toLowerCase().includes(term));
+      
+      if (!filtered.length) { noRes.classList.remove('hidden'); } 
+      else {
+        noRes.classList.add('hidden');
+        filtered.forEach((p, i) => {
+          const card = document.createElement('div');
+          card.className = "bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-stone-100 animate__animated animate__fadeInUp";
+          card.style.animationDelay = `${i * 0.1}s`;
+          card.innerHTML = `
+            <img src="${p.img}" class="w-full h-64 object-cover">
+            <div class="p-5">
+              <h3 class="text-xs text-stone-400 uppercase">${p.category}</h3>
+              <h2 class="text-lg font-bold font-serif text-stone-800">${p.name}</h2>
+              <p class="mt-2 text-xl font-bold text-rose-900">₹ ${p.price}</p>
+            </div>
+          `;
+          resContainer.appendChild(card);
+        });
+      }
+    });
+
+    const userEmail = localStorage.getItem("userEmail");
+    const userControls = document.getElementById("userControls");
+    if (userEmail) {
+      userControls.innerHTML = `<a href="search.html" class="text-xl">🔍</a><a href="wishlist.html" class="text-xl">🤍</a><a href="orders.html" class="text-xl">🛒</a><button onclick="logout()" class="bg-rose-100 text-rose-700 px-4 py-2 rounded-lg text-sm font-bold ml-2">Logout</button>`;
+    } else {
+      userControls.innerHTML = `<a href="search.html" class="text-xl">🔍</a><a href="wishlist.html" class="text-xl">🤍</a><a href="orders.html" class="text-xl">🛒</a><a href="signin.html" class="text-xl ml-2">👤</a>`;
+    }
+    function logout() { localStorage.clear(); location.reload(); }
+  </script>
+</body>
+</html>

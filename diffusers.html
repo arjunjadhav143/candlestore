@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Diffusers - The Candle Store</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap');
+    body { font-family: 'Poppins', sans-serif; }
+    h1, h2, h3, .font-serif { font-family: 'Playfair Display', serif; }
+  </style>
+</head>
+<body class="bg-stone-50 text-stone-800 font-sans flex flex-col min-h-screen">
+
+  <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-stone-200 shadow-sm transition-all duration-300">
+    <div class="max-w-7xl mx-auto flex justify-between items-center p-4">
+      <div class="flex items-center gap-6">
+        <a href="index.html" class="flex items-center gap-2 hover:scale-105 transition"><img src="candle images/1.png" alt="Logo" class="h-10 drop-shadow-sm"></a>
+        <nav class="hidden md:flex gap-6 text-sm font-medium text-stone-600">
+          <a href="index.html" class="hover:text-rose-700 transition pb-1">HOME</a>
+          <a href="candles.html" class="hover:text-rose-700 transition pb-1">CANDLES</a>
+          <a href="diffusers.html" class="text-rose-900 font-bold border-b-2 border-rose-900 pb-1">DIFFUSERS</a>
+          <a href="contact.html" class="hover:text-rose-700 transition pb-1">CONTACT</a>
+        </nav>
+      </div>
+      <div class="flex items-center gap-5 text-stone-700" id="userControls"></div>
+    </div>
+  </header>
+
+  <main class="flex-grow p-6 max-w-7xl mx-auto w-full mt-10 animate__animated animate__fadeIn">
+    <h1 class="text-4xl font-bold font-serif text-stone-900 mb-8 border-b border-stone-200 pb-4 text-center md:text-left">Our Diffusers</h1>
+    
+    <div id="wishlistContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+    
+    <div class="bg-white rounded-3xl border border-stone-100 p-16 text-center shadow-sm">
+      <div class="text-6xl mb-4">🌿</div>
+      <p id="emptyMessage" class="text-stone-500 text-xl font-serif italic">Diffuser collection coming soon.</p>
+    </div>
+  </main>
+
+  <footer class="bg-stone-900 text-stone-300 text-center py-6 mt-10">
+    <p class="text-sm">&copy; 2025 The Candle Store. All rights reserved.</p>
+  </footer>
+
+  <script>
+    const userEmail = localStorage.getItem("userEmail");
+    const userControls = document.getElementById("userControls");
+    if (userEmail) {
+      userControls.innerHTML = `
+        <a href="search.html" class="text-xl hover:scale-110 transition">🔍</a>
+        <a href="wishlist.html" class="text-xl hover:scale-110 transition">🤍</a>
+        <a href="orders.html" class="text-xl hover:scale-110 transition">🛒</a>
+        <button onclick="logout()" class="bg-rose-100 text-rose-700 px-4 py-2 rounded-lg text-sm font-bold ml-2">Logout</button>
+      `;
+    } else {
+      userControls.innerHTML = `<a href="search.html" class="text-xl">🔍</a><a href="wishlist.html" class="text-xl">🤍</a><a href="orders.html" class="text-xl">🛒</a><a href="signin.html" class="text-xl ml-2">👤</a>`;
+    }
+    function logout() { localStorage.clear(); location.reload(); }
+  </script>
+</body>
+</html>

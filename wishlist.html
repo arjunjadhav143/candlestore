@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Wishlist - The Candle Store</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@400;500;600&display=swap');
+    body { font-family: 'Poppins', sans-serif; }
+    .font-serif { font-family: 'Playfair Display', serif; }
+  </style>
+</head>
+<body class="bg-stone-50 text-stone-800 font-sans min-h-screen flex flex-col">
+
+  <header class="bg-white/80 backdrop-blur-md border-b border-stone-200 p-4 shadow-sm">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <div class="flex items-center gap-6">
+        <a href="index.html" class="flex items-center gap-2"><img src="candle images/1.png" alt="Logo" class="h-10"></a>
+        <nav class="hidden md:flex gap-6 text-sm font-medium">
+          <a href="index.html" class="hover:text-rose-700 transition">HOME</a>
+          <a href="wishlist.html" class="text-rose-900 font-bold border-b-2 border-rose-900 pb-1">WISHLIST</a>
+        </nav>
+      </div>
+      <div id="userControls" class="flex gap-4 items-center"></div>
+    </div>
+  </header>
+
+  <main class="flex-grow max-w-7xl mx-auto w-full p-6 mt-6 animate__animated animate__fadeIn">
+    <h1 class="text-4xl font-bold font-serif mb-8 border-b border-stone-200 pb-4 text-stone-900">My Favorites</h1>
+    
+    <div id="wishlistContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8"></div>
+    
+    <div id="emptyWishlist" class="hidden text-center py-20 bg-white rounded-3xl shadow-sm border border-stone-100 mt-6">
+      <div class="text-5xl mb-4 text-rose-300">🤍</div>
+      <h2 class="text-xl font-bold text-stone-800 mb-2 font-serif">Your wishlist is empty</h2>
+      <p class="text-stone-500 mb-6">Save your favorite scents here for later.</p>
+      <a href="candles.html" class="bg-stone-900 text-white px-8 py-3 rounded-full font-medium hover:bg-stone-700 transition shadow">Discover Candles</a>
+    </div>
+  </main>
+
+  <script>
+    const userEmail = localStorage.getItem("userEmail");
+    const userId = localStorage.getItem("userId");
+    if (!userId) window.location.href = "signin.html";
+
+    document.getElementById("userControls").innerHTML = `
+      <span class="text-sm font-medium bg-stone-100 px-3 py-1 rounded-full hidden sm:block">${userEmail}</span>
+      <button onclick="logout()" class="bg-rose-100 text-rose-700 px-4 py-2 rounded-lg text-sm font-bold hover:bg-rose-200 transition">Logout</button>
+    `;
+    function logout() { localStorage.clear(); location.reload(); }
+
+    const container = document.getElementById("wishlistContainer");
+    const emptyMessage = document.getElementById("emptyWishlist");
+
+    fetch(`https://candle-store-backend-qk3r.onrender.com/api/wishlist/${userId}`)
+      .then(res => res.json())
+      .then(items => {
+        if (!Array.isArray(items) || items.length === 0) { emptyMessage.classList.remove("hidden"); return; }
+        
+        items.forEach((item, index) => {
+          const card = document.createElement("div");
+          card.className = "bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-stone-100 animate__animated animate__fadeInUp";
+          card.style.animationDelay = `${index * 0.1}s`;
+          card.innerHTML = `
+            <div class="relative h-56">
+              <img src="${item.img}" class="w-full h-full object-cover">
+              <button onclick="removeItem('${item._id}')" class="absolute top-3 right-3 bg-white/90 p-2 rounded-full text-red-500 hover:bg-red-50 hover:scale-110 transition shadow-sm">❌</button>
+            </div>
+            <div class="p-5">
+              <h2 class="text-lg font-bold font-serif text-stone-800">${item.name}</h2>
+              <p class="text-xl font-bold text-rose-900 mt-2">₹${item.price}</p>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      });
+
+    function removeItem(id) {
+      fetch(`https://candle-store-backend-qk3r.onrender.com/api/wishlist/${id}`, { method: "DELETE" })
+        .then(() => window.location.reload());
+    }
+  </script>
+</body>
+</html>
